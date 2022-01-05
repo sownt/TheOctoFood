@@ -1,0 +1,16 @@
+{% autoescape off %}
+Hi {{ user.first_name }},
+
+Thank you for signing up with TheOctoFood! Please click on the 
+link below to confirm your registration. This verification link 
+is only valid for the next 24 hours.
+
+http://{{ domain }}{% url 'activate' uidb64=uid token=token %}
+
+You can't access to your account until you verify your email 
+address. This is to protect your account from being used by 
+others. If you have any questions, please reply to this email.
+
+Welcome to TheOctoFood!
+Team TheOctoFood
+{% endautoescape %}
