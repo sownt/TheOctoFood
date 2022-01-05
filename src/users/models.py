@@ -3,7 +3,6 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
 # Create your models here.
 class CustomUserManager(BaseUserManager):
-    
     def create_user(self, username, password, email, first_name, last_name, phone_number, **extra_fields):
         if not username:
             raise ValueError('Username must be set')
@@ -50,8 +49,8 @@ class Account(AbstractBaseUser):
     is_active = models.BooleanField(default=True)
     date_joined = models.DateTimeField(auto_now_add=True)
 
-    USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['email', 'first_name', 'last_name', 'phone_number']
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username', 'first_name', 'last_name', 'phone_number']
 
     objects = CustomUserManager()
 
@@ -59,7 +58,7 @@ class Account(AbstractBaseUser):
         return self.username
 
     def has_perm(self, perm, obj=None):
-        return self.is_staff
+        return self.is_superuser
 
     def has_module_perms(self, add_label):
         return True
