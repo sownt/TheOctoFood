@@ -6,3 +6,6 @@ class Category(models.Model):
     slug        = models.SlugField(max_length=50, unique=True)
     description = models.TextField()
     image       = models.ImageField(upload_to ='categories/')
+
+class Item(models.Model):
+    pass
