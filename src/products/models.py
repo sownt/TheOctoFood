@@ -8,10 +8,10 @@ class Category(models.Model):
     image       = models.ImageField(upload_to ='categories/')
 
 class Item(models.Model):
-    name        = models.CharField(max_length=50, unique=True)
+    name        = models.CharField(max_length=150, unique=True)
     slug        = models.SlugField(max_length=50, unique=True)
-    description = models.TextField()
-    price       = models.DecimalField(max_digits=500000, decimal_places=2)
-    image       = models.ImageField(upload_to ='categories/')
-    quantity    = models.DecimalField(max_digits=1000, decimal_places=2)
-pass
+    description = models.TextField(max_length=300)
+    price       = models.IntegerField()
+    image       = models.ImageField(upload_to ='items/')
+    category    = models.ForeignKey(Category, on_delete = models.CASCADE) 
+    stock       = models.IntegerField()
