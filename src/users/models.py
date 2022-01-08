@@ -62,3 +62,15 @@ class Account(AbstractBaseUser):
 
     def has_module_perms(self, add_label):
         return True
+
+class Address(models.Model):
+    user = models.ForeignKey(Account, on_delete=models.CASCADE)
+    street_address = models.CharField(max_length=50)
+    ward = models.CharField(max_length=50)
+    district = models.CharField(max_length=50)
+    city = models.CharField(max_length=50)
+    country = models.CharField(max_length=50)
+    zip_code = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.street_address
