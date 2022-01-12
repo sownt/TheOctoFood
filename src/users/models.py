@@ -71,6 +71,7 @@ class Address(models.Model):
     city = models.CharField(max_length=50)
     country = models.CharField(max_length=50)
     zip_code = models.CharField(max_length=50)
+    is_default = models.BooleanField(default=False)
 
     def __str__(self):
         return self.street_address

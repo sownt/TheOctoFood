@@ -1,24 +1,40 @@
 from django.db import models
 from django.db.models.deletion import CASCADE
+from users.models import Account
 
 # Create your models here.
 class Category(models.Model):
     name        = models.CharField(max_length=50, unique=True)
     slug        = models.SlugField(max_length=50, unique=True)
-    description = models.TextField()
-    image       = models.ImageField(upload_to ='categories/')
+    description = models.TextField(max_length=255, blank=True)
+    image       = models.ImageField(upload_to ='categories/', blank=True)
+
+    class Meta:
+        verbose_name = 'Category'
+        verbose_name_plural = 'Categories'
+
+    def __str__(self):
+        return self.name
 
 class Item(models.Model):
+    category    = models.ForeignKey(Category, on_delete = models.CASCADE) 
     name        = models.CharField(max_length=150, unique=True)
-    slug        = models.SlugField(max_length=50, unique=True)
-    description = models.TextField(max_length=300)
+    slug        = models.SlugField(max_length=150, unique=True)
+    description = models.TextField(max_length=300, blank=True)
     price       = models.IntegerField()
     image       = models.ImageField(upload_to ='items/')
-    category    = models.ForeignKey(Category, on_delete = models.CASCADE) 
     stock       = models.IntegerField()
+    is_active   = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
 
 class Review(models.Model):
-    image       = models.ImageField(upload_to ='reviews/')
-    comment     = models.TextField(max_length= 200)
-    item        = models.ForeignKey(Item, on_delete= models.CASCADE)
-    slug        = models.SlugField(max_length=50, unique=True)
+    item        = models.ForeignKey(Item, on_delete = CASCADE)
+    user        = models.ForeignKey(Account, on_delete = CASCADE)
+    comment     = models.TextField(max_length=255, blank=True)
+    rating      = models.IntegerField()
+    created_at  = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.comment
