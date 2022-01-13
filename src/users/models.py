@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
-
+from users.apps import Item
 # Create your models here.
 class CustomUserManager(BaseUserManager):
     def create_user(self, username, password, email, first_name, last_name, phone_number, **extra_fields):
@@ -75,3 +75,10 @@ class Address(models.Model):
 
     def __str__(self):
         return self.street_address
+
+class Cart(models.Model):
+    item        = models.ForeignKey(Item, on_delete = models.CASCADE)
+    user        = models.ForeignKey(Account, on_delete = models.CASCADE)
+    total       = models.IntegerField()
+    updated     = models.DateTimeField(auto_now=True)
+    created_at  = models.DateTimeField(auto_now_add=True)
