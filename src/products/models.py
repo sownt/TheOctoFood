@@ -38,3 +38,10 @@ class Review(models.Model):
 
     def __str__(self):
         return self.comment
+
+class Cart(models.Model):
+    item        = models.ForeignKey(Item, on_delete = CASCADE)
+    user        = models.ForeignKey(Account, on_delete = CASCADE)
+    total       = models.IntegerField()
+    updated     = models.DateTimeField(auto_now=True)
+    created_at  = models.DateTimeField(auto_now_add=True)
