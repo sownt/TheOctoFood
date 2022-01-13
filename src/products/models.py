@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models.deletion import CASCADE
 from users.models import Account
+from django.urls import reverse
 
 # Create your models here.
 class Category(models.Model):
@@ -12,6 +13,9 @@ class Category(models.Model):
     class Meta:
         verbose_name = 'Category'
         verbose_name_plural = 'Categories'
+
+    def get_url(self):
+        return reverse('category_detail', args=[self.slug])
 
     def __str__(self):
         return self.name
@@ -25,6 +29,9 @@ class Item(models.Model):
     image       = models.ImageField(upload_to ='items/')
     stock       = models.IntegerField()
     is_active   = models.BooleanField(default=True)
+
+    def get_url(self):
+        return reverse('item_detail', args=[self.category.slug, self.slug])
 
     def __str__(self):
         return self.name
