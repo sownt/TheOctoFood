@@ -1,6 +1,5 @@
 from django.db import models
 from django.db.models.deletion import CASCADE
-from users.models import Account
 from django.urls import reverse
 
 # Create your models here.
@@ -38,7 +37,7 @@ class Item(models.Model):
 
 class Review(models.Model):
     item        = models.ForeignKey(Item, on_delete = CASCADE)
-    user        = models.ForeignKey(Account, on_delete = CASCADE)
+    user        = models.ForeignKey('users.Account', on_delete = CASCADE)
     comment     = models.TextField(max_length=255, blank=True)
     rating      = models.IntegerField()
     created_at  = models.DateTimeField(auto_now_add=True)
