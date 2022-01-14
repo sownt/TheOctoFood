@@ -1,3 +1,4 @@
+import imp
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
@@ -70,8 +71,22 @@ class Address(models.Model):
     district = models.CharField(max_length=50)
     city = models.CharField(max_length=50)
     country = models.CharField(max_length=50)
-    zip_code = models.CharField(max_length=50)
     is_default = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name_plural = "Address"
 
     def __str__(self):
         return self.street_address
+
+class Cart(models.Model):
+    user        = models.ForeignKey(Account, on_delete = models.CASCADE)
+    item        = models.ForeignKey('products.Item', on_delete = models.CASCADE)
+    quantity    = models.IntegerField(default=1)
+    is_active   = models.BooleanField(default=True)
+
+    def sub_total(self):
+        return self.quantity * self.item.price
+
+    def __unicode__(self):
+        return self.item

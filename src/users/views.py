@@ -1,5 +1,5 @@
 from django import forms
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages, auth
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
@@ -8,8 +8,10 @@ from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from django.core.mail import EmailMessage
+from django.core.exceptions import ObjectDoesNotExist
 
-from .models import Account
+from .models import Account, Cart, Address
+from products.models import Item
 
 # Create your views here.
 class RegistrationForm(forms.ModelForm):
@@ -18,8 +20,8 @@ class RegistrationForm(forms.ModelForm):
     first_name = forms.CharField(max_length=50)
     last_name = forms.CharField(max_length=50)
     phone_number = forms.CharField(max_length=50)
-    password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Enter password'}))
-    confirm_password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Confirm password'}))
+    password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Nhập mật khẩu'}))
+    confirm_password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Xác nhận'}))
 
     class Meta:
         model = Account
@@ -27,11 +29,11 @@ class RegistrationForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(RegistrationForm, self).__init__(*args, **kwargs)
-        self.fields['username'].widget.attrs['placeholder'] = 'Enter username'
-        self.fields['email'].widget.attrs['placeholder'] = 'Enter email'
-        self.fields['first_name'].widget.attrs['placeholder'] = 'Enter first name'
-        self.fields['last_name'].widget.attrs['placeholder'] = 'Enter last name'
-        self.fields['phone_number'].widget.attrs['placeholder'] = 'Enter phone number'
+        self.fields['username'].widget.attrs['placeholder'] = 'Nhập username'
+        self.fields['email'].widget.attrs['placeholder'] = 'Địa chỉ Email'
+        self.fields['first_name'].widget.attrs['placeholder'] = 'Tên'
+        self.fields['last_name'].widget.attrs['placeholder'] = 'Họ'
+        self.fields['phone_number'].widget.attrs['placeholder'] = 'Số điện thoại'
         for field in self.fields:
             self.fields[field].widget.attrs['class'] = 'form-control'
 
@@ -40,7 +42,7 @@ class RegistrationForm(forms.ModelForm):
         password = cleaned_data.get('password')
         confirm_password = cleaned_data.get('confirm_password')
         if password != confirm_password:
-            raise forms.ValidationError('Passwords do not match')
+            raise forms.ValidationError('Mật khảu không khớp')
         return cleaned_data
 
 def register(request):
@@ -65,7 +67,7 @@ def register(request):
             user.save()
 
             current_site = get_current_site(request=request)
-            mail_subject = 'Verify your email address.'
+            mail_subject = 'Xác nhận địa chỉ email.'
             message = render_to_string('account/mail_activation.html', {
                 'user': user,
                 'domain': current_site.domain,
@@ -76,11 +78,11 @@ def register(request):
             send_email.send()
             messages.success(
                 request=request,
-                message="Please confirm your email address!"
+                message="Vui lòng xác nhận địa chỉ email!"
             )
             return redirect('register')
         else:
-            messages.error(request=request, message="Register failed!")
+            messages.error(request=request, message="Thất bại!")
     else:
         form = RegistrationForm()
     context = {
@@ -95,7 +97,6 @@ def login(request):
         user = auth.authenticate(email=email, password=password)
         if user is not None:
             auth.login(request=request, user=user)
-            messages.success(request=request, message="Login successful!")
             url = request.META.get('HTTP_REFERER')
             try:
                 query = requests.utils.urlparse(url).query
@@ -106,7 +107,7 @@ def login(request):
             except Exception:
                 return redirect('dashboard')
         else:
-            messages.error(request=request, message="Login failed!")
+            messages.error(request=request, message="Thất bại!")
     context = {
         'email': email if 'email' in locals() else '',
         'password': password if 'password' in locals() else '',
@@ -116,7 +117,7 @@ def login(request):
 @login_required(login_url="login")
 def logout(request):
     auth.logout(request)
-    messages.success(request=request, message="You are logged out!")
+    messages.success(request=request, message="Đăng xuất thành công!")
     return redirect('login')
 
 def activate(request, uidb64, token):
@@ -130,11 +131,11 @@ def activate(request, uidb64, token):
         user.is_active = True
         user.save()
         messages.success(
-            request=request, message="Your account is activated!")
+            request=request, message="Tài khoản của bạn đã được kích hoạt!")
         return redirect('login')
         
     else:
-        messages.error(request=request, message="This link is invalid!")
+        messages.error(request=request, message="Không tìm thấy liên kết!")
         return redirect('login')
 
 def forgot_password(request):
@@ -144,7 +145,7 @@ def forgot_password(request):
             user = Account.objects.get(email__exact=email)
 
             current_site = get_current_site(request=request)
-            mail_subject = 'Password Reset.'
+            mail_subject = 'Khôi phục mật khẩu.'
             message = render_to_string('account/mail_reset.html', {
                 'user': user,
                 'domain': current_site.domain,
@@ -155,10 +156,10 @@ def forgot_password(request):
             send_email.send()
 
             messages.success(
-                request=request, message="We have sent you an email with instructions to reset your password!")
+                request=request, message="Chúng tôi đã gửi cho bạn một email!")
 
     except Exception:
-        messages.error(request=request, message="Account does not exist!")
+        messages.error(request=request, message="Tài khoản không tồn tại!")
     finally:
         context = {
             'email': email if 'email' in locals() else '',
@@ -176,7 +177,7 @@ def reset_password(request, uidb64, token):
         request.session['uid'] = uid
         return redirect('change_password')
     else:
-        messages.error(request=request, message="This link has been expired or is invalid!")
+        messages.error(request=request, message="Không tìm thấy liên kết!")
         return redirect('login')
 
 def change_password(request):
@@ -189,11 +190,110 @@ def change_password(request):
             user = Account.objects.get(pk=uid)
             user.set_password(password)
             user.save()
-            messages.success(request, message="Password reset successful!")
+            messages.success(request, message="Thành công!")
             return redirect('login')
         else:
-            messages.error(request, message="Password do not match!")
+            messages.error(request, message="Mật khẩu không khớp!")
     return render(request, 'account/account_reset.html')
 
 def default(request):
     return redirect('home')
+
+def cart(request, total=0, quantity=0, cart_items=None):
+    try:
+        if request.user.is_authenticated:
+            cart_items = Cart.objects.all().filter(user=request.user, is_active=True)
+        else:
+            cart_items = []
+            
+        for cart_item in cart_items:
+            total += cart_item.item.price * cart_item.quantity
+            quantity += cart_item.quantity
+        
+        tax = int(total * 1 / 10)
+        grand_total = total + tax
+
+    except ObjectDoesNotExist:
+        pass
+
+    print(request.user)
+    context = {
+        'total': total,
+        'quantity': quantity,
+        'cart_items': cart_items,
+        'tax': tax if "tax" in locals() else "",
+        'grand_total': grand_total if "tax" in locals() else 0,
+    }
+    return render(request, 'account/account_cart.html', context=context)
+
+def add_cart(request, item_id):
+    user = request.user
+    item = Item.objects.get(pk=item_id)
+    if user.is_authenticated:
+        try:
+            cart_item = Cart.objects.get(user=user, item=item, is_active=True)
+            cart_item.quantity += 1
+            cart_item.save()
+        except ObjectDoesNotExist:
+            cart_item = Cart.objects.create(user=user, item=item, quantity=1)
+            cart_item.save()
+    else:
+        redirect('login')
+    
+    return redirect('cart')
+
+def remove_cart(request, cart_id):
+    cart_item = get_object_or_404(Cart, pk=cart_id, user=request.user)
+    try:
+        if cart_item.quantity > 1:
+            cart_item.quantity -= 1
+            cart_item.save()
+        else:
+            cart_item.delete()
+    except Exception:
+        pass
+    return redirect('cart')
+
+def remove_item(request, cart_id):
+    cart_item = get_object_or_404(Cart, pk=cart_id, user=request.user)
+    try:
+        cart_item.delete()
+    except Exception:
+        pass
+    return redirect('cart')
+
+@login_required(login_url='login')
+def checkout(request, total=0, quantity=0, cart_items=None):
+    try:
+        cart_items = Cart.objects.filter(user=request.user, is_active=True)
+        for cart_item in cart_items:
+            total += cart_item.item.price * cart_item.quantity
+            quantity += cart_item.quantity
+        tax = total * 2 / 100
+        grand_total = total + tax
+    except ObjectDoesNotExist:
+        pass
+
+    try:
+        address = Address.objects.get(user=request.user)
+    except ObjectDoesNotExist:
+        address = None
+
+    if address is None:
+        address = Address()
+        address.user = request.user
+        address.street_address = ''
+        address.ward = ''
+        address.district = ''
+        address.city = ''
+        address.country = ''
+
+    context = {
+        'total': total,
+        'quantity': quantity,
+        'cart_items': cart_items,
+        'tax': tax if "tax" in locals() else "",
+        'grand_total': grand_total,
+        'address' : address,
+    }
+    return render(request, 'account/account_checkout.html', context=context)

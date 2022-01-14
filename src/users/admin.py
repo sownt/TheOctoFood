@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import Account, Address
+from .models import Account, Address, Cart
 
 # Register your models here.
 class CustomUserAdmin(UserAdmin):
@@ -10,5 +10,13 @@ class CustomUserAdmin(UserAdmin):
     list_filter = ()
     fieldsets = ()
 
+class AddressAdmin(admin.ModelAdmin):
+    list_display = ['street_address', 'ward', 'district', 'city', 'user',]
+    list_display_links = ('street_address',)
+    filter_horizontal = ()
+    list_filter = ()
+    fieldsets = ()
+
 admin.site.register(Account, CustomUserAdmin)
-admin.site.register(Address)
+admin.site.register(Address, AddressAdmin)
+admin.site.register(Cart)
