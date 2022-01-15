@@ -1,4 +1,4 @@
-![theoctofood](images/banner.png)
+![the-octo-food](images/banner.jpg)
 # TheOctoFood - Django Food Order Project
 ## Deployment Guides
 Clone this repo
