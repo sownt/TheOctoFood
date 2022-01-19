@@ -238,7 +238,7 @@ def add_cart(request, item_id):
             cart_item = Cart.objects.create(user=user, item=item, quantity=1)
             cart_item.save()
     else:
-        redirect('login')
+        return redirect('login')
     
     return redirect('cart')
 

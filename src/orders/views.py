@@ -85,6 +85,10 @@ def transaction(request):
 
 def place_order(request, total=0, quantity=0,):
     current_user = request.user
+
+    if not current_user.is_authenticated:
+        return redirect('login')
+    
     cart_items = Cart.objects.filter(user=current_user)
 
     grand_total = 0
