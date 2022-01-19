@@ -117,11 +117,11 @@
 	// Render the PayPal button into #paypal-button-container
 	paypal.Buttons({
 		style: {
-            color:  'blue',
-            shape:  'pill',
-            label:  'pay',
-            height: 40,
-        },
+			layout: 'vertical',
+			color:  'blue',
+			shape:  'rect',
+			label:  'paypal'
+		},
 
 		createOrder: function(data, actions) {
 			return actions.order.create({
@@ -148,7 +148,7 @@
 					},
 					success: function(response) {
 						data = response.data;
-						alert('Transaction completed by ' + details.payer.name.given_name + '!');
+						// alert('Transaction completed by ' + details.payer.name.given_name + '!');
 						window.location.href = redirectUrl + '?order_number=' + data["order_number"] + '&payment_id=' + data["transID"];
 					},
 					error: function(response) {
