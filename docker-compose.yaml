@@ -3,7 +3,6 @@ version: "3.9"
 services:
   db:
     image: mariadb
-    restart: always
     volumes:
       - ./src/TheOctoFood/theoctofood.sql:/docker-entrypoint-initdb.d/theoctofood.sql
     environment:
@@ -25,7 +24,6 @@ services:
         condition: service_healthy
   phpmyadmin:
     image: phpmyadmin
-    restart: always
     ports:
       - 8080:80
     environment:
